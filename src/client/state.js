@@ -16,16 +16,18 @@ export function getCurrentState() {
   return {
     self: {
       x: 5,
-      y: 7,
+      y: 1,
     },
     players: {},
-    gamestate: {},
+    gamestate: {
+      mapSize: 6,
+    },
   };
 }
 
 export function getInfo() {
   return {
-    validArea: 150,
+    validArea: 100,
     speed: 1 / 0.8,
   };
 }

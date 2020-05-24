@@ -17,7 +17,7 @@ const canvasArea = canvas.width * canvas.height;
 })();
 
 function render() {
-  window.requestAnimationFrame(render);
+  // window.requestAnimationFrame(render);
 
   const { self, players, gamestate } = getCurrentState();
   const { validArea, speed } = getInfo();
@@ -40,10 +40,21 @@ function render() {
 
 function renderTiles(x, y, state, res) {
   const tileSize = 1 / res;
-  for (var i = Math.floor(x - canvas.width * res / 2 - 1); i < x + canvas.width * res / 2 + 1; i++) {
-    for (var j = Math.floor(x - canvas.height * res / 2 - 1); j < x + canvas.height * res / 2 + 1; j++) {
-      context.fillStyle = "#374892";
-      context.fillRect(i * tileSize, j * tileSize, tileSize / 2, tileSize / 2);
+  const tileWidthHalf = canvas.width * res / 2
+  const tileHeightHalf = canvas.height * res / 2
+  for (var i = Math.floor(x - tileWidthHalf - 1); i < (x + tileWidthHalf + 1); i++) {
+    for (var j = Math.floor(y - tileHeightHalf - 1); j < (y + tileHeightHalf + 1); j++) {
+      const index = i * state.mapSize + j;
+      const tx = (i - x + tileWidthHalf) * tileSize;
+      const ty = (j - y + tileHeightHalf) * tileSize;
+      const ts = tileSize;
+      if (i < 0 || j < 0 || i > state.mapSize || j > state.mapSize) {
+        context.fillStyle = "#e8eaed";
+        context.fillRect(tx, ty, ts + 1, ts + 1);
+      } else {
+        context.fillStyle = "#374892";
+      }
+
     }
   }
 }
