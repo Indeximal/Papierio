@@ -3,9 +3,9 @@ module.exports = {
   MSG: {
     JOIN: "client_join",
     MOVE: "client_move",
-    INFO: "server_info",
+    INIT: "server_init",
     UPDATE: "server_update",
-    PLAYERS: "server_players",
+    EVENT: "server_event",
     DEATH: "server_death",
   },
   DIR: {

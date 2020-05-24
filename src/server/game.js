@@ -67,7 +67,7 @@ class Game extends GameState {
   emitPlayerUpdates() {
     for (var uuid in this.sockets) {
       // console.log(`Player ${this.players[uuid].name} is still here!`);
-      this.sockets[uuid].emit(KEYS.MSG.PLAYERS, this.players);
+      this.sockets[uuid].emit(KEYS.MSG.UPDATE, this.players);
     }
   }
 

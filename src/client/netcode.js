@@ -1,4 +1,5 @@
 import io from 'socket.io-client';
+import { initState, updateState, handleEvents, getXYT } from './state';
 
 const KEYS = require('../shared/keys.js');
 
@@ -15,7 +16,9 @@ export const play = (ip, username) => {
     socket.on('connect', () => {
       console.log('connected!');
       // connected
-      // socket.on(KEYS.MSG.UPDATE, ???);
+      socket.on(KEYS.MSG.UPDATE, updateState);
+      socket.on(KEYS.MSG.EVENT, handleEvents);
+      socket.on(KEYS.MSG.INIT, initState);
       // socket.on(KEYS.MSG.DEATH, ???);
 
       join_game(username);
@@ -29,6 +32,7 @@ export const play = (ip, username) => {
   }
 };
 
-export const sendMove = (x, y, direction) => {
-  socket.emit(KEYS.MSG.MOVE, {x, y, direction});
+export function sendMove(direction) {
+  const { x, y, t } = getXYT();
+  socket.emit(KEYS.MSG.MOVE, { x, y, t, direction });
 }
