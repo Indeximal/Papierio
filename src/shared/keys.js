@@ -5,7 +5,7 @@ module.exports = {
     MOVE: "client_move",
     INFO: "server_info",
     UPDATE: "server_update",
-    MOVEMENTS: "serve_movements",
+    PLAYERS: "server_players",
     DEATH: "server_death",
   },
   DIR: {

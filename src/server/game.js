@@ -6,14 +6,16 @@ const KEYS = require('../shared/keys')
 class Game extends GameState {
   constructor(mapSize, speed, maxPlayers) {
     super(mapSize, speed);
+    this.tick = 0;
     this.maxPlayers = maxPlayers;
-    this.MoveUpdatePhase = true;
     this.availiableIDs = [... Array(maxPlayers).keys()];
     this.availiableTextures = ['#de6223', '#de2323', '#ded823', '#77de23',
       '#23de93', '#23a9de', '#232fde', '#8723de', '#de23c5'];
+
+    this.sockets = {};
   }
 
-  onJoinPlayer(socket, name) {
+  onPlayerJoin(socket, name) {
     // TODO: reject if max players reached
     const pid = this.availiableIDs.pop();
     const tex = this.availiableTextures.pop();
@@ -24,6 +26,7 @@ class Game extends GameState {
 
     const player = new Player(name, socket.id, pid, tex, x, y, KEYS.DIR.RIGHT);
     this.players[socket.id] = player;
+    this.sockets[socket.id] = socket;
   }
 
   onPlayerMove(socket, info) {
@@ -39,23 +42,52 @@ class Game extends GameState {
     // this.availiableTextures.push(tex)
   }
 
-  tick() {
-    if (this.MoveUpdatePhase) {
-      this.update();
-    } else {
-      this.movements();
+  updatePlayerPos() {
+    for (var uuid in this.players) {
+      switch (this.players[uuid].dir) {
+        case KEYS.DIR.UP:
+          this.players[uuid].y += 1;
+          break;
+        case KEYS.DIR.RIGHT:
+          this.players[uuid].x += 1;
+          break;
+        case KEYS.DIR.LEFT:
+          this.players[uuid].x -= 1;
+          break;
+        case KEYS.DIR.DOWN:
+          this.players[uuid].y -= 1;
+          break;
+        default:
+        // TODO: throw error
+          break;
+      }
     }
-    this.MoveUpdatePhase = !this.MoveUpdatePhase;
   }
+
+  emitPlayerUpdates() {
+    for (var uuid in this.sockets) {
+      // console.log(`Player ${this.players[uuid].name} is still here!`);
+      this.sockets[uuid].emit(KEYS.MSG.PLAYERS, this.players);
+    }
+  }
+
+
 
   // tick
   update() {
-    console.log('tick');
-  }
+    console.log(`tick ${this.tick}`);
+    this.tick += 1;
+    console.log(this.players);
 
-  // tock
-  movements() {
-    console.log('tock');
+    // 1. calc player pos: quick
+    this.updatePlayerPos();
+    // 2. send player updates: quick
+    this.emitPlayerUpdates();
+    // 3. calc consequences
+    // 4. send consequences
+
+    // consequences: death, fill, trail
+
   }
 }
 
