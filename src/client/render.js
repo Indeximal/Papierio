@@ -1,5 +1,11 @@
 import { getCurrentState, getInfo } from './state';
 
+// CrossPlatform AnimationFrame
+var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+window.requestAnimationFrame = requestAnimationFrame;
+
+
 // Get the canvas graphics context
 const canvas = document.getElementById('game-canvas');
 const context = canvas.getContext('2d');
@@ -10,16 +16,10 @@ canvas.height = window.innerHeight;
 
 const canvasArea = canvas.width * canvas.height;
 
-(function() {
-  var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  window.requestAnimationFrame = requestAnimationFrame;
-})();
-
 function render() {
-  // window.requestAnimationFrame(render);
+  window.requestAnimationFrame(render);
 
-  const { self, players, gamestate } = getCurrentState();
+  const { self, players, map } = getCurrentState();
   const { validArea, speed } = getInfo();
   const tileRes = Math.sqrt(validArea / canvasArea); // 0 < x < 1
 
@@ -27,42 +27,56 @@ function render() {
     return;
   }
 
-  // Draw background
-  renderTiles(self.x, self.y, gamestate, tileRes);
+  // clear canvas
+  context.clearRect(0, 0, canvas.width, canvas.height);
 
-  // // Draw all bullets
-  // bullets.forEach(renderBullet.bind(null, me));
-  //
+  // Draw background
+  renderTiles(self.x, self.y, map, tileRes);
+
   // // Draw all players
   // renderPlayer(me, me);
   // others.forEach(renderPlayer.bind(null, me));
 }
 
-function renderTiles(x, y, state, res) {
+function renderTiles(centerX, centerY, map, res) {
   const tileSize = 1 / res;
-  const tileWidthHalf = canvas.width * res / 2
-  const tileHeightHalf = canvas.height * res / 2
-  for (var i = Math.floor(x - tileWidthHalf - 1); i < (x + tileWidthHalf + 1); i++) {
-    for (var j = Math.floor(y - tileHeightHalf - 1); j < (y + tileHeightHalf + 1); j++) {
-      const index = i * state.mapSize + j;
-      const tx = (i - x + tileWidthHalf) * tileSize;
-      const ty = (j - y + tileHeightHalf) * tileSize;
-      const ts = tileSize;
-      if (i < 0 || j < 0 || i > state.mapSize || j > state.mapSize) {
+  // width and height of the visible area in tiles
+  const widthHalfT = canvas.width * res / 2
+  const heightHalfT = canvas.height * res / 2
+
+  for (var x = Math.floor(centerX - widthHalfT - 1); x < (centerX + widthHalfT + 1); x++) {
+    for (var y = Math.floor(centerY - heightHalfT - 1); y < (centerY + heightHalfT + 1); y++) {
+      // pixel position of tile at (x, y)
+      const tx = (x - centerX + widthHalfT) * tileSize;
+      const ty = (y - centerY + heightHalfT) * tileSize;
+
+      // test tile
+      if (x == 1 && y == 1) {
+        context.fillStyle = "#f57676";
+        context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
+      }
+
+      if (x < 0 || y < 0 || x > map.size || y > map.size) {
+        // Out of bounds
         context.fillStyle = "#e8eaed";
-        context.fillRect(tx, ty, ts + 1, ts + 1);
+        context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
       } else {
+        // In bounds
+        const index = x * map.size + y;
         context.fillStyle = "#374892";
       }
 
     }
   }
+
+  context.fillStyle = "#2761d6";
+  context.fillRect((canvas.width - tileSize) / 2, (canvas.height - tileSize) / 2, tileSize, tileSize)
 }
 
-var reqid = null;
+var animationID = null;
 export function startRendering() {
-  reqid = window.requestAnimationFrame(render);
+  animationID = window.requestAnimationFrame(render);
 }
 export function stopRendering() {
-  window.cancelAnimationFrame(reqid);
+  window.cancelAnimationFrame(animationID);
 }

@@ -1,34 +1,69 @@
-const GameState = require('../shared/gamestate');
+const PlayerState = require('../shared/playerstate');
 
-export function initState() {
 
+var validStateTick = null;
+var map = null;
+var gameSpeed = null;
+var displayArea = null;
+var t0 = null;
+var players = null;
+var selfUUID = null;
+
+var initCallback = null;
+
+export function setSelf(uuid) {
+  selfUUID = uuid;
 }
 
-export function updateState() {
-
+export function runOnInitialized(callback) {
+  initCallback = callback;
 }
 
-export function handleEvents() {
+export function initState(data) {
+  console.log(data);
+  const { t, area, speed, mapsize, mapdata } = data;
+  validStateTick = t;
+  displayArea = area;
+  gameSpeed = speed;
+  map = {
+    size: mapsize,
+    tiles: mapdata.tiles,
+    trails: mapdata.trails,
+  }
+}
+
+export function updateState(data) {
+  if (map != null) {
+    if (players == null) {
+      // first update
+      t0 = Date.now();
+      players = data.players;
+      initCallback();
+    } else {
+      players = data.players;
+    }
+  }
+}
+
+export function handleEvents(data) {
 
 }
 
 export function getCurrentState() {
   return {
     self: {
-      x: 5,
-      y: 1,
+      x: players[selfUUID].x,
+      y: players[selfUUID].y,
     },
-    players: {},
-    gamestate: {
-      mapSize: 6,
-    },
+    players: players,
+    map: map,
   };
 }
 
 export function getInfo() {
   return {
-    validArea: 100,
-    speed: 1 / 0.8,
+    validArea: displayArea,
+    speed: gameSpeed,
   };
 }
 

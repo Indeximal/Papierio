@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-import { initState, updateState, handleEvents, getXYT } from './state';
+import { initState, updateState, handleEvents, setSelf, getXYT } from './state';
 
 const KEYS = require('../shared/keys.js');
 
@@ -10,12 +10,15 @@ function join_game(username) {
 }
 
 export const play = (ip, username) => {
+  // set up socket the first time
   if (typeof socket === 'undefined') {
     socket = io(`ws://${ip}`); // TODO: add change server option
-    console.log(`connection to ${ip} as ${username}`);
+    console.log(`connecting to ${ip} as ${username}`);
+
     socket.on('connect', () => {
       console.log('connected!');
       // connected
+      setSelf(socket.id);
       socket.on(KEYS.MSG.UPDATE, updateState);
       socket.on(KEYS.MSG.EVENT, handleEvents);
       socket.on(KEYS.MSG.INIT, initState);
@@ -23,10 +26,8 @@ export const play = (ip, username) => {
 
       join_game(username);
     })
-    // .catch(() => {
-    //   alert('Server not availiable'); // TODO: nicer
-    //   // error
-    // });
+    // TODO: handle server unavailiable
+
   } else {
     join_game(username);
   }
@@ -34,5 +35,6 @@ export const play = (ip, username) => {
 
 export function sendMove(direction) {
   const { x, y, t } = getXYT();
-  socket.emit(KEYS.MSG.MOVE, { x, y, t, direction });
+  console.log(`Move in dir ${direction}`);
+  socket.emit(KEYS.MSG.MOVE, { t: t, x: x, y: y, dir: direction });
 }
