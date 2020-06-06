@@ -10,6 +10,7 @@ var players = null;
 var selfUUID = null;
 
 var initCallback = null;
+var deathCallback = null;
 
 export function setSelf(uuid) {
   selfUUID = uuid;
@@ -17,6 +18,10 @@ export function setSelf(uuid) {
 
 export function runOnInitialized(callback) {
   initCallback = callback;
+}
+
+export function runOnDeath(callback) {
+  deathCallback = callback;
 }
 
 // return the texture string for a given ingame id
@@ -78,7 +83,20 @@ export function updateState(data) {
 }
 
 export function handleEvents(data) {
-  // TODO: obviously write code here
+  // TODO: handle delayedEvents differently
+  const { t, immediateEvents, delayedEvents } = data;
+  const events = immediateEvents.concat(delayedEvents);
+
+  events.forEach(event => {
+    if (event.type === 'kill') {
+      if (event.target === selfUUID) {
+        // YOU DIED
+        deathCallback(event);
+      }
+    } else if (event.type === 'fill') {
+      // TODO: fill the map ()
+    }
+  });
 }
 
 export function getCurrentState() {

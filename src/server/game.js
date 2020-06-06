@@ -41,7 +41,10 @@ class Game extends GameState {
     this.emitState(socket);
   }
 
+  // send the full mapstate over socketio
   emitState(socket) {
+    // TODO
+    // OPTIMIZE: Send actual Uint8array and not json thereof
     const fulldata = {
       t: this.tick,
       area: this.visibleArea,
@@ -57,15 +60,36 @@ class Game extends GameState {
 
   onPlayerMove(socket, info) {
     // TODO: validate
+    if (!socket.id in this.players) {
+      return;
+    }
     const { t, x, y, dir } = info;
     this.players[socket.id].dir = dir;
   }
 
-  removePlayer(socket) {
-    // players remove
-    // const pid = player.id
-    // this.availiableIDs.push(pid)
-    // this.availiableTextures.push(tex)
+  removePlayer(uuid) {
+    // Free internal id and texture for future reassignment.
+    const pid = this.players[uuid].id;
+    this.availiableIDs.push(pid);
+    const tex = this.players[uuid].tex;
+    this.availiableTextures.push(tex);
+
+    // clear tiles
+    for (var i = 0; i < this.landMap.length; i++) {
+      if (this.landMap[i] == pid) {
+        this.landMap[i] = 0;
+      }
+    }
+
+    // clear trail
+    for (var i = 0; i < this.trailMap.length; i++) {
+      if (this.trailMap[i] == pid) {
+        this.trailMap[i] = 0;
+      }
+    }
+
+    // remove player, leave socket (maybe bad)
+    delete this.players[uuid];  // I hate this
   }
 
   // Store the trail of each player before he moves.
@@ -91,7 +115,7 @@ class Game extends GameState {
   }
 
   emitPlayerUpdates() {
-    for (var uuid in this.sockets) {
+    for (var uuid in this.players) {
       // console.log(`Player ${this.players[uuid].name} is still here!`);
       const data = {
         t: this.tick,
@@ -166,6 +190,7 @@ class Game extends GameState {
       }
 
       // Fill at t+0.5, where t is the current update
+      // TODO: Wierd edge case, when you encircle someone
       if (tileOwnerID === p.id) {
         // Home Tile: Fill area
         // TODO: Fill algorithm
@@ -177,6 +202,28 @@ class Game extends GameState {
       }
     }
     return [ instantEvents, delayedEvents ];
+  }
+
+  fulfillEvents(events) {
+    events.forEach(event => {
+      if (event.type === 'kill') {
+        this.removePlayer(event.target);
+      } else if (event.type === 'fill') {
+        // TODO: fill the map (and then replicate clientside)
+      }
+    });
+  }
+
+  // send all events: fill and kill
+  emitEvents(events1, events2) {
+    for (var uuid in this.players) {
+      const data = {
+        t: this.tick,
+        immediateEvents: events1,
+        delayedEvents: events2,
+      };
+      this.sockets[uuid].emit(KEYS.MSG.EVENT, data);
+    }
   }
 
   // tick
@@ -191,15 +238,15 @@ class Game extends GameState {
     this.updatePlayerPos();
     // 2. send player updates: quick
     this.emitPlayerUpdates();
-    // 3. calc consequences
+    // 3. calc consequences: somewhat time intensive
     const [ immediateEvent, delayedEvents ] = this.calcEvents();
     // 4. send consequences
+    this.emitEvents(immediateEvent, delayedEvents);
+    // 6. fulfill events by removing players and filling area
+    this.fulfillEvents(immediateEvent.concat(delayedEvents));
 
     console.log(immediateEvent);
     console.log(delayedEvents);
-
-    // consequences: death, fill, trail
-
   }
 }
 

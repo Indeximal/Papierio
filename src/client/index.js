@@ -1,7 +1,7 @@
 import { play } from './netcode';
 import { startRendering, stopRendering } from './render';
 import { startCapturingInput, stopCapturingInput } from './input.js';
-import { runOnInitialized } from './state.js';
+import { runOnInitialized, runOnDeath } from './state.js';
 // import { setLeaderboardHidden } from './leaderboard';
 
 
@@ -15,5 +15,10 @@ document.getElementById('play-button').onclick = () => {
     startRendering();
     startCapturingInput();
     // setLeaderboardHidden(false);
+  });
+  runOnDeath(() => {
+    menuDiv.classList.remove('hidden');
+    stopRendering();
+    stopCapturingInput();
   });
 };
