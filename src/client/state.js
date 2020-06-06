@@ -19,6 +19,15 @@ export function runOnInitialized(callback) {
   initCallback = callback;
 }
 
+// return the texture string for a given ingame id
+export function getTexture(ingameID) {
+  for (var uuid in players) {
+    if (players[uuid].id == ingameID) {
+      return players[uuid].tex;
+    }
+  }
+}
+
 export function initState(data) {
   console.log(data);
   const { t, area, speed, mapsize, mapdata } = data;
@@ -32,26 +41,36 @@ export function initState(data) {
   }
 }
 
+function updatePlayers(playersDict) {
+  // convert data into Player-Instances
+  players = {};
+  for (var uuid in playersDict) {
+    const player = new PlayerState();
+    Object.assign(player, playersDict[uuid]);
+    players[uuid] = player;
+  }
+}
+
 export function updateState(data) {
   if (map != null) {
     if (players == null) {
       // first update
       t0 = Date.now();
-      players = data.players;
+      updatePlayers(data.players);
       initCallback();
     } else {
-      players = data.players;
+      updatePlayers(data.players);
     }
   }
 }
 
 export function handleEvents(data) {
-
+  // TODO: obviously write code here
 }
 
 export function getCurrentState() {
   return {
-    self: {
+    center: {
       x: players[selfUUID].x,
       y: players[selfUUID].y,
     },
@@ -67,9 +86,8 @@ export function getInfo() {
   };
 }
 
-// const { self, players, gamestate } = getCurrentState();
-// const { validArea, speed } = getInfo();
-
 export function getXYT() {
+  // TODO: fix
+  // not needed right now
   return { x: 1, y: 2, t: 3 };
 }

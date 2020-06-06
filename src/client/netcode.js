@@ -35,6 +35,6 @@ export const play = (ip, username) => {
 
 export function sendMove(direction) {
   const { x, y, t } = getXYT();
-  console.log(`Move in dir ${direction}`);
+  // console.log(`Move in dir ${direction}`);
   socket.emit(KEYS.MSG.MOVE, { t: t, x: x, y: y, dir: direction });
 }

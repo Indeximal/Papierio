@@ -1,4 +1,4 @@
-import { getCurrentState, getInfo } from './state';
+import { getCurrentState, getInfo, getTexture } from './state';
 
 // CrossPlatform AnimationFrame
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
@@ -19,11 +19,12 @@ const canvasArea = canvas.width * canvas.height;
 function render() {
   window.requestAnimationFrame(render);
 
-  const { self, players, map } = getCurrentState();
-  const { validArea, speed } = getInfo();
+  const { center, players, map } = getCurrentState();
+  const { validArea } = getInfo();
   const tileRes = Math.sqrt(validArea / canvasArea); // 0 < x < 1
 
-  if (!self) {
+  if (!center) {
+    // Theoretically shouldn't be reached, but hey, I don't really know what I'm doing.
     return;
   }
 
@@ -31,11 +32,19 @@ function render() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw background
-  renderTiles(self.x, self.y, map, tileRes);
+  renderTiles(center.x, center.y, map, tileRes);
 
-  // // Draw all players
-  // renderPlayer(me, me);
-  // others.forEach(renderPlayer.bind(null, me));
+  // Draw all players
+  renderPlayers(center.x, center.y, tileRes, players)
+}
+
+function renderPlayers(centerX, centerY, res, players) {
+  // render player
+  for (var uuid in players) {
+    context.fillStyle = players[uuid].tex;
+    // TODO: correct position
+    context.fillRect(canvas.width / 2, canvas.height / 2, 50, 50);
+  }
 }
 
 function renderTiles(centerX, centerY, map, res) {
@@ -50,27 +59,35 @@ function renderTiles(centerX, centerY, map, res) {
       const tx = (x - centerX + widthHalfT) * tileSize;
       const ty = (y - centerY + heightHalfT) * tileSize;
 
-      // test tile
-      if (x == 1 && y == 1) {
-        context.fillStyle = "#f57676";
-        context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
-      }
-
-      if (x < 0 || y < 0 || x > map.size || y > map.size) {
+      if (x < 0 || y < 0 || x >= map.size || y >= map.size) {
         // Out of bounds
         context.fillStyle = "#e8eaed";
         context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
       } else {
         // In bounds
         const index = x * map.size + y;
-        context.fillStyle = "#374892";
-      }
 
+        const tileOwnerID = map.tiles[index];
+        const trailOwnerID = map.trails[index];
+        const trailTex = getTexture(trailOwnerID);
+
+        // draw tile
+        if (tileOwnerID != 0) {
+          const tileTex = getTexture(tileOwnerID);
+          context.fillStyle = tileTex;
+          context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
+        }
+
+        // draw trail transparently
+        if (trailOwnerID != 0) {
+          context.fillStyle = trailTex;
+          context.globalAlpha = 0.5;
+          context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
+          context.globalAlpha = 1.0;
+        }
+      }
     }
   }
-
-  context.fillStyle = "#2761d6";
-  context.fillRect((canvas.width - tileSize) / 2, (canvas.height - tileSize) / 2, tileSize, tileSize)
 }
 
 var animationID = null;

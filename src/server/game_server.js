@@ -14,10 +14,10 @@ console.log(`Server listening on port ${port}`);
 const io = socketio(server);
 
 // Setup Game
-const mapSize = process.env.GAME_MAPSIZE || 64; // width and heigth in tiles
-const ticktime = process.env.GAME_TICKTIME || 800; // ms per tile
-const maxPlayers = process.env.GAME_MAXPLAYERS || 64; // max concurrent players
-const visibleArea = process.env.GAME_VISIBLEAREA || 400; // tiles visible on screen
+const mapSize = process.env.GAME_MAPSIZE || 16; // width and heigth in tiles
+const ticktime = process.env.GAME_TICKTIME || 600; // ms per tile
+const maxPlayers = process.env.GAME_MAXPLAYERS || 8; // max concurrent players
+const visibleArea = process.env.GAME_VISIBLEAREA || 1024; // tiles visible on screen
 const game = new Game(mapSize, 1000 / ticktime, maxPlayers, visibleArea); // TODO: rethink speed
 
 // CALLBACK for KEYS.MSG.JOIN
