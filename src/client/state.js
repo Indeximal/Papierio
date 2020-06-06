@@ -41,16 +41,29 @@ export function initState(data) {
   }
 }
 
+// paints the trails for the current players
+function updateTrails() {
+  for (var uuid in players) {
+    const p = players[uuid];
+    const index = p.x * map.size + p.y;
+    map.trails[index] = p.id;
+  }
+}
+
 function updatePlayers(playersDict) {
-  // convert data into Player-Instances
+  // kind hacky implicit solution to paint in the trails, FIXME maybe
+  updateTrails();
+
   players = {};
   for (var uuid in playersDict) {
+    // convert data into Player-Instances
     const player = new PlayerState();
     Object.assign(player, playersDict[uuid]);
     players[uuid] = player;
   }
 }
 
+// Provoked by server, provides player position and direction data.
 export function updateState(data) {
   if (map != null) {
     if (players == null) {

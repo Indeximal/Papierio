@@ -39,11 +39,19 @@ function render() {
 }
 
 function renderPlayers(centerX, centerY, res, players) {
-  // render player
+  const tileSize = 1 / res;
+  // width and height of the visible area in tiles
+  const widthHalfT = canvas.width * res / 2
+  const heightHalfT = canvas.height * res / 2
+
+  // render every player, no edgecase for own player.
   for (var uuid in players) {
-    context.fillStyle = players[uuid].tex;
-    // TODO: correct position
-    context.fillRect(canvas.width / 2, canvas.height / 2, 50, 50);
+    const p = players[uuid];
+    // pixel coordinates
+    const tx = (p.x - centerX + widthHalfT) * tileSize;
+    const ty = (p.y - centerY + heightHalfT) * tileSize;
+    context.fillStyle = p.tex;
+    context.fillRect(tx, ty, tileSize, tileSize);
   }
 }
 
@@ -82,7 +90,7 @@ function renderTiles(centerX, centerY, map, res) {
         if (trailOwnerID != 0) {
           context.fillStyle = trailTex;
           context.globalAlpha = 0.5;
-          context.fillRect(tx, ty, tileSize + 1, tileSize + 1);
+          context.fillRect(tx, ty, tileSize, tileSize);
           context.globalAlpha = 1.0;
         }
       }

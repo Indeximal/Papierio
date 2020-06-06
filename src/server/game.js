@@ -73,7 +73,6 @@ class Game extends GameState {
     for (var uuid in this.players) {
       const p = this.players[uuid];
       const index = p.x * this.mapSize + p.y;
-      const tileOwnerID = this.landMap[index];
       const priorTrailOwner = this.trailMap[index];
       if (priorTrailOwner != 0) {
         console.log('Error: The prior trail is not 0!');
@@ -122,6 +121,7 @@ class Game extends GameState {
       if (p.x < 0 || p.y < 0 || p.x >= this.mapSize || p.y >= this.mapSize) {
         instantEvents.push({
           type: 'kill',
+          cause: 'wall',
           player: uuid,
           target: uuid,
         });
@@ -140,6 +140,7 @@ class Game extends GameState {
         // Collision with a trail
         instantEvents.push({
           type: 'kill',
+          cause: 'trail hit',
           player: uuid,
           target: this.getPlayerByID(trailOwnerID).uuid,
         });
@@ -156,6 +157,7 @@ class Game extends GameState {
           if (tileOwnerID != this.players[otheruuid]) {
             delayedEvents.push({
               type: 'kill',
+              cause: 'headon collision',
               player: uuid,
               target: otheruuid,
             });
@@ -179,9 +181,9 @@ class Game extends GameState {
 
   // tick
   update() {
-    console.log(`tick ${this.tick}`);
+    console.log(`Tick ${this.tick}, ${Object.keys(this.players).length} player(s) online.`);
     this.tick += 1;
-    console.log(this.players);
+    // console.log(this.players);
 
     // 0. update Trails: quick
     this.updateTrails();
@@ -192,6 +194,9 @@ class Game extends GameState {
     // 3. calc consequences
     const [ immediateEvent, delayedEvents ] = this.calcEvents();
     // 4. send consequences
+
+    console.log(immediateEvent);
+    console.log(delayedEvents);
 
     // consequences: death, fill, trail
 
