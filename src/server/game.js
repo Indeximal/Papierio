@@ -194,6 +194,7 @@ class Game extends GameState {
       if (tileOwnerID === p.id) {
         // Home Tile: Fill area
         // TODO: Fill algorithm
+
         delayedEvents.push({
           type: 'fill',
           player: uuid,
@@ -202,6 +203,46 @@ class Game extends GameState {
       }
     }
     return [ instantEvents, delayedEvents ];
+  }
+
+  calcFilledTiles(uuid) {
+    function indexOf(x, y) {
+      return x * this.mapSize + y;
+    }
+    const p = this.players[uuid];
+    const pid = p.id;
+    const startIndex = indexOf(p.x, p.y);
+
+    // FIXME: this WILL fuck up if two trails are next to each other.
+    // fix: non linear recursion
+    // better fix: store path while its being drawn
+    function appendTrailTile(trailArr) {
+      const lastIndex = trailArr[trailArr.length - 1];
+      const preLastIndex = trailArr[trailArr.length - 2];
+
+      function isNext(index) {
+        if (index === lastIndex) {
+          return False;
+        }
+        return this.trailMap[index] === pid
+      }
+
+      if (isNext(lastIndex + 1)) {  // down
+        trailArr.push(lastIndex + 1);
+        return appendTrailTile(trailArr);
+      } else if (isNext(lastIndex - 1)) { // up
+        trailArr.push(lastIndex - 1);
+        return appendTrailTile(trailArr);
+      } else if (isNext(lastIndex + this.mapSize)) { // right
+        trailArr.push(lastIndex + this.mapSize);
+        return appendTrailTile(trailArr);
+      } else if (isNext(lastIndex - this.mapSize)) { // left
+        trailArr.push(lastIndex - this.mapSize);
+        return appendTrailTile(trailArr);
+      } else {
+        return trailArr;
+      }
+    }
   }
 
   fulfillEvents(events) {

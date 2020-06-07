@@ -11,6 +11,7 @@ document.getElementById('play-button').onclick = () => {
   const menuDiv = document.getElementById('menu');
   play(ip, name);
   runOnInitialized(() => {
+    // TODO: Also get run on restart
     menuDiv.classList.add('hidden');
     startRendering();
     startCapturingInput();
