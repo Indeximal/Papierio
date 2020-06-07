@@ -18,7 +18,7 @@ const mapSize = process.env.GAME_MAPSIZE || 16; // width and heigth in tiles
 const ticktime = process.env.GAME_TICKTIME || 600; // ms per tile
 const maxPlayers = process.env.GAME_MAXPLAYERS || 8; // max concurrent players
 const visibleArea = process.env.GAME_VISIBLEAREA || 1024; // tiles visible on screen
-const game = new Game(mapSize, 1000 / ticktime, maxPlayers, visibleArea); // TODO: rethink speed
+const game = new Game(mapSize, ticktime, maxPlayers, visibleArea); // TODO: rethink speed
 
 // CALLBACK for KEYS.MSG.JOIN
 function joinPlayer(username) {

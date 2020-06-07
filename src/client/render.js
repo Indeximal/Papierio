@@ -45,8 +45,7 @@ function renderPlayers(centerX, centerY, res, players) {
   const heightHalfT = canvas.height * res / 2
 
   // render every player, no edgecase for own player.
-  for (var uuid in players) {
-    const p = players[uuid];
+  for (let p of players) {
     // pixel coordinates
     const tx = (p.x - centerX + widthHalfT) * tileSize;
     const ty = (p.y - centerY + heightHalfT) * tileSize;
@@ -103,5 +102,6 @@ export function startRendering() {
   animationID = window.requestAnimationFrame(render);
 }
 export function stopRendering() {
+  // FIXME: doesn't work!
   window.cancelAnimationFrame(animationID);
 }

@@ -97,11 +97,14 @@ class Game extends GameState {
     for (var uuid in this.players) {
       const p = this.players[uuid];
       const index = p.x * this.mapSize + p.y;
+      const tileOwnerID = this.landMap[index];
       const priorTrailOwner = this.trailMap[index];
       if (priorTrailOwner != 0) {
         console.log('Error: The prior trail is not 0!');
       }
-      this.trailMap[index] = p.id;
+      if (tileOwnerID != p.id) {
+        this.trailMap[index] = p.id;
+      }
     }
   }
 

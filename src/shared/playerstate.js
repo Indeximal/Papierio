@@ -26,6 +26,11 @@ class PlayerState {
         return { x: this.x, y: this.y, error: 'Unrecognised direction' };
     }
   }
+
+  smoothPos(t) {
+    const { x, y } = this.nextXY();
+    return { x: this.x * (1 - t) + x * t, y: this.y * (1 - t) + y * t };
+  }
 }
 
 module.exports = PlayerState;

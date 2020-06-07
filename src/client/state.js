@@ -1,5 +1,6 @@
 const PlayerState = require('../shared/playerstate');
 
+const DISPLAY_DELAY = 30; // ms
 
 var validStateTick = null;
 var map = null;
@@ -51,33 +52,39 @@ function updateTrails() {
   for (var uuid in players) {
     const p = players[uuid];
     const index = p.x * map.size + p.y;
-    map.trails[index] = p.id;
+    const tileOwnerID = map.tiles[index];
+    if (tileOwnerID != p.id) {
+      map.trails[index] = p.id;
+    }
   }
 }
 
-function updatePlayers(playersDict) {
+var nextTickPlayers;
+function updatePlayers() {
   // kind hacky implicit solution to paint in the trails, FIXME maybe
   updateTrails();
 
   players = {};
-  for (var uuid in playersDict) {
+  for (var uuid in nextTickPlayers) {
     // convert data into Player-Instances
     const player = new PlayerState();
-    Object.assign(player, playersDict[uuid]);
+    Object.assign(player, nextTickPlayers[uuid]);
     players[uuid] = player;
   }
 }
 
 // Provoked by server, provides player position and direction data.
 export function updateState(data) {
+  const serverTick = data.t;
   if (map != null) {
     if (players == null) {
       // first update
-      t0 = Date.now();
-      updatePlayers(data.players);
+      const serverT0 = serverTick * gameSpeed;
+      t0 = Date.now() - serverT0 - DISPLAY_DELAY;
+      nextTickPlayers = data.players;
       initCallback();
     } else {
-      updatePlayers(data.players);
+      nextTickPlayers = data.players;
     }
   }
 }
@@ -99,13 +106,31 @@ export function handleEvents(data) {
   });
 }
 
+// Called every frame by the render loop
+var prevTick = 0;
 export function getCurrentState() {
+
+  const tick = (Date.now() - t0) / gameSpeed;
+  if (Math.floor(prevTick) != Math.floor(tick)) {
+    // Tick has occured!
+    updatePlayers();
+  }
+  prevTick = tick;
+  // display is behind calcucation, so subract 1
+  const floatT = tick - Math.floor(tick) - 1;
+
+  const smoothPlayers = Object.values(players).map(p => {
+    const { x, y } = p.smoothPos(floatT);
+    return {
+      x: x,
+      y: y,
+      tex: p.tex,
+    };
+  });
+
   return {
-    center: {
-      x: players[selfUUID].x,
-      y: players[selfUUID].y,
-    },
-    players: players,
+    center: players[selfUUID].smoothPos(floatT),
+    players: smoothPlayers,
     map: map,
   };
 }
